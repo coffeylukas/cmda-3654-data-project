@@ -1,0 +1,101 @@
+---
+title: "Project Methodology - Lukas Coffey, CMDA 3654 SU19"
+author: "Lukas Coffey"
+date: "8/9/2019"
+output: 
+  pdf_document: default
+  html_document: default
+geometry: margin = 0.5in
+header-includes:
+- \usepackage{wrapfig}
+- \sffamily
+- \usepackage{booktabs}
+- \usepackage{longtable}
+- \usepackage{array}
+- \usepackage{multirow}
+- \usepackage{wrapfig}
+- \usepackage{float}
+- \usepackage{colortbl}
+- \usepackage{pdflscape}
+- \usepackage{tabu}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+setwd("~/Documents/School/VT/CMDA3654/DataProject/")
+
+library(tidyverse)
+```
+
+# Brief Overview of Dataset
+
+The data contains information about online super store orders. It includes the date, shipping info, pricing info, and product info. There are 21 columns and 9994 rows of data.
+```{r include=FALSE}
+orders <- read_csv("Data/StoreData_CLEAN.csv")
+```
+```{r}
+# I have organized and cleaned this data, and lat/lng data has been merged in
+# based on postal code, and return data has been merged in as well based on Order ID.
+# I am not converting columns to factors here for the sake of space and time.
+glimpse(orders)
+```
+
+
+# Summary of Questions
+
+I’ve found through EDA that this dataset is fairly normal with not many obvious trends; however, this could just mean I need to dig deeper. These are some questions I'd like to answer:
+
+  1. Given a month of the year and a region, which product category is most likely to be purchased?
+  2. Given a category of product, what region is it most likely to be ordered from?
+  3. What is the probability of an item being returned based on different factors?
+
+Mainly, these questions are meant to solve problems that an online business might have, such as:
+
+  - Where should we build a distribution center, and what products should we keep in stock more than others?
+  - What time of the year do we need to focus our marketing efforts in, as well as what region?
+  - What product categories seem to have the most returns? If there are a lot of returns in one category, why is this so? Is it from product defects, failing manafacturing process, shipping damage, not satisfied by the product, etc.
+
+These are just examples of some of the questions you could answer by statistical analysis like this. I've included some plots at the bottom of the report to illustrate some of the trends, and why I want to ask these questions.
+
+
+# Summary of Statistical Methods
+
+In this case, supervised learning methods seem the most appropriate, because we already know the categories we are trying to answer questions about. I plan to use: 
+
+  - **Classification using LDA, QDA, or SVM** for the region/category questions,
+  - **Logistic Regression** for finding the probability of returns.
+
+\clearpage
+
+# Included Plots
+
+```{r months}
+ggplot(orders, 
+       aes(x = as.factor(OrderMonth), 
+           fill = Category)) + 
+  geom_bar() + 
+  labs(title = "Orders per Month, by Product Category", 
+       y = "Orders Per Month", 
+       x = "Month of the Year")
+```
+
+You can see by this map how the orders are distributed across the U.S. I would like to find any patterns in these areas.
+
+```{r}
+sales.map <- ggplot(na.omit(orders), 
+       aes(y = Latitude, 
+           x = Longitude, 
+           color = Category)) +
+  geom_point(aes(size = Sales, 
+                 shape = Returned)) +
+  labs(title = "Coordinates of Sales Region, by Product Category", 
+       y = "Latitude", 
+       x = "Longitude", 
+       size = "Sales Amount (dollars)", 
+       color = "Product Category", 
+       shape = "Item Returned?") +
+  theme(legend.position = "bottom", 
+        legend.direction = "vertical")
+sales.map
+```
+
